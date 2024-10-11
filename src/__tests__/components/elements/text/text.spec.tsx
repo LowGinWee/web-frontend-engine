@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ITextSchema, TTextType } from "../../../../components/elements";
-import { FrontendEngine, IFrontendEngineData } from "../../../../components/frontend-engine";
+import { FrontendEngine, IFrontendEngineData, TFrontendEngineValues } from "../../../../components/frontend-engine";
 import { TestHelper } from "../../../../utils";
 import { FRONTEND_ENGINE_ID, TOverrideSchema } from "../../../common";
 const SUBMIT_FN = jest.fn();
@@ -11,6 +11,7 @@ const COMPONENT_TEST_ID = TestHelper.generateId(COMPONENT_ID, "text");
 const renderComponent = (
 	overrideField?: Partial<Omit<ITextSchema, "label">> | undefined,
 	overrideSchema?: TOverrideSchema,
+	defaultValues?: TFrontendEngineValues,
 	maxLines?: number
 ) => {
 	const json: IFrontendEngineData = {
@@ -29,6 +30,7 @@ const renderComponent = (
 			},
 		},
 		...overrideSchema,
+		defaultValues,
 	};
 
 	return render(<FrontendEngine data={json} onSubmit={SUBMIT_FN} />);
@@ -150,5 +152,21 @@ describe(UI_TYPE, () => {
 
 		Object.defineProperty(HTMLElement.prototype, "clientHeight", { value: 0 });
 		Object.defineProperty(HTMLElement.prototype, "scrollHeight", { value: 0 });
+	});
+
+	fit("should be able replace default values in text", () => {
+		renderComponent(
+			{
+				className: "text-element",
+				children: "<div>Replaced field 1: <value>field1</value>, Replaced field 2: <value>field2</value></div>",
+			},
+			undefined,
+			{ field1: "value of field 1", field2: "value of field 2" }
+		);
+
+		expect(
+			screen.getByText("Replaced field 1: value of field 1, Replaced field 2: value of field 2")
+		).toBeInTheDocument();
+		expect(document.querySelector(".text-element").innerHTML.includes("script")).toBe(false);
 	});
 });

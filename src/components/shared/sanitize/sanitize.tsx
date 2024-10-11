@@ -2,6 +2,7 @@ import { Markup, MarkupProps } from "@lifesg/react-design-system/markup";
 import { renderToStaticMarkup } from "react-dom/server";
 import sanitize, { IOptions } from "sanitize-html";
 import { TestHelper } from "../../../utils";
+import { useFormSchema } from "../../../utils/hooks";
 
 interface IProps {
 	baseTextColor?: MarkupProps["baseTextColor"] | undefined;
@@ -18,6 +19,9 @@ export const Sanitize = (props: IProps) => {
 	// CONST, STATE, REF
 	// =============================================================================
 	const { baseTextColor, baseTextSize, children, className, id, inline, sanitizeOptions } = props;
+	const {
+		formSchema: { defaultValues },
+	} = useFormSchema();
 
 	// =============================================================================
 	// HELPER FUNCTIONS
@@ -26,7 +30,21 @@ export const Sanitize = (props: IProps) => {
 		if (typeof children !== "string") {
 			return renderToStaticMarkup(children as JSX.Element);
 		}
-		return children;
+		return replaceDefaultValue(children);
+	};
+
+	/**
+	 * Replaces the key within <value> tags with corresponding default values defined in the FEE schema.
+	 * If a match is found, the content is replaced by the value. If no match is found, the key and tag would be removed.
+	 * @param body The children string content containing the <value> tags
+	 */
+	const replaceDefaultValue = (body: string): string => {
+		if (typeof body === "string") {
+			return body.replace(/<value>(.*?)<\/value>/g, (_, id) => {
+				return defaultValues?.[id] || "";
+			});
+		}
+		return body;
 	};
 
 	const getSanitizedHtml = (): string => {

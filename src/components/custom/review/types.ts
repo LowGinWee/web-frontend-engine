@@ -27,7 +27,7 @@ export interface IReviewItemDetails {
 // =========================================================================
 // COMMON
 // =========================================================================
-interface IReviewSchemaItemBase extends Pick<UneditableSectionItemProps, "label" | "value" | "displayWidth"> {}
+interface IReviewSchemaItemBase extends Pick<UneditableSectionItemProps, "label" | "value" | "displayWidth" | "id"> {}
 
 interface IReviewSchemaItem extends IReviewSchemaItemBase {
 	disableMaskUnmask?: never | undefined;

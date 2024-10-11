@@ -81,7 +81,7 @@ export const Text = (props: IGenericElementProps<ITextSchema>) => {
 			return <Wrapper>{children}</Wrapper>;
 		}
 		return (
-			<Sanitize inline sanitizeOptions={sanitizeOptions}>
+			<Sanitize inline sanitizeOptions={sanitizeOptions} id={id}>
 				{children}
 			</Sanitize>
 		);

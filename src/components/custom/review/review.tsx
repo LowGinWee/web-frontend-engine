@@ -4,9 +4,10 @@ import { UneditableSection, UneditableSectionItemProps } from "@lifesg/react-des
 import isEmpty from "lodash/isEmpty";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import useDeepCompareEffect from "use-deep-compare-effect";
 import * as Yup from "yup";
 import { AxiosApiClient } from "../../../utils";
-import { useFieldEvent, useValidationConfig } from "../../../utils/hooks";
+import { useFieldEvent, useFormSchema, useValidationConfig } from "../../../utils/hooks";
 import { Wrapper } from "../../elements/wrapper";
 import { IGenericCustomElementProps } from "../types";
 import {
@@ -16,7 +17,6 @@ import {
 	TReviewSchema,
 	TReviewSchemaItem,
 } from "./types";
-import useDeepCompareEffect from "use-deep-compare-effect";
 
 export const Review = (props: IGenericCustomElementProps<TReviewSchema>) => {
 	// =============================================================================
@@ -25,6 +25,9 @@ export const Review = (props: IGenericCustomElementProps<TReviewSchema>) => {
 	const { id, schema } = props;
 	const { setFieldValidationConfig, removeFieldValidationConfig } = useValidationConfig();
 	const { dispatchFieldEvent } = useFieldEvent();
+	const {
+		formSchema: { defaultValues },
+	} = useFormSchema();
 	const [itemDetailList, setItemDetailList] = useState<IReviewItemDetails[]>([]);
 
 	// =============================================================================
@@ -42,12 +45,14 @@ export const Review = (props: IGenericCustomElementProps<TReviewSchema>) => {
 
 	useDeepCompareEffect(() => {
 		const newItemDetailList = schema.items.map((item: TReviewSchemaItem, i: number): IReviewItemDetails => {
-			const itemId = `item-${i + 1}`;
+			const itemId = item.id || `item-${i + 1}`;
+			const defaultValue = defaultValues?.[itemId];
+
 			const itemDetail: IReviewItemDetails = {
-				formattedItem: { ...item, id: itemId },
+				formattedItem: { ...item, id: itemId, value: defaultValue ?? item.value },
 				unmaskFailureCount: 0,
 			};
-			if ("mask" in item) {
+			if ("mask" in item && itemDetail.formattedItem.value) {
 				const { mask, unmask, ...otherItemProps } = item;
 				if (mask === "uinfin" || mask === "whole") {
 					itemDetail.unmask = unmask;
@@ -56,6 +61,7 @@ export const Review = (props: IGenericCustomElementProps<TReviewSchema>) => {
 						id: itemId,
 						maskState: "masked",
 						maskRange: mask === "uinfin" ? [1, 4] : [0, item.value.length],
+						value: defaultValue ?? item.value,
 					};
 				}
 			}
